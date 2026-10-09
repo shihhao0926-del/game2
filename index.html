@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Classic 1942 Prototype</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="gameCanvas" width="480" height="640"></canvas>
+    <div id="ui-overlay">
+      <div id="score-board">SCORE: <span id="score">0</span></div>
+      <div id="lives-board">LIVES: <span id="lives">3</span></div>
+    </div>
+    <div id="controls-hint">
+      [方向鍵 / WASD]: 移動 | [J / 空白鍵]: 射擊 | [K]: 戰術迴旋（翻滾迴避）
+    </div>
+  </div>
+  <script src="game.js"></script>
+</body>
+</html>
