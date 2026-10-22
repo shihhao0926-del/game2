@@ -169,6 +169,10 @@ const sfx = new SoundFX();
 // ==========================================
 const keys = {};
 
+// 自訂初始數量設定 (上限 99)
+let initialShieldCount = 5;
+let initialLightningCount = 3;
+
 const virtualControls = {
   joyBaseX: 75, joyBaseY: canvas.height - 75, joyRadius: 42,
   stickX: 75, stickY: canvas.height - 75, activeId: null,
@@ -208,11 +212,35 @@ function handleMenuClick(tx, ty) {
     return;
   }
   if (isStartMenu) {
-    const btnW = 220; const btnH = 50; const bx = canvas.width / 2 - btnW / 2;
+    // 檢查防護罩與閃電按鈕點擊
+    // 防護罩 [-] 與 [+]
+    if (ty >= 225 && ty <= 255) {
+      if (tx >= 250 && tx <= 285) {
+        if (initialShieldCount > 0) initialShieldCount--;
+        return;
+      }
+      if (tx >= 345 && tx <= 380) {
+        if (initialShieldCount < 99) initialShieldCount++;
+        return;
+      }
+    }
+    // 閃電 [-] 與 [+]
+    if (ty >= 265 && ty <= 295) {
+      if (tx >= 250 && tx <= 285) {
+        if (initialLightningCount > 0) initialLightningCount--;
+        return;
+      }
+      if (tx >= 345 && tx <= 380) {
+        if (initialLightningCount < 99) initialLightningCount++;
+        return;
+      }
+    }
+
+    const btnW = 220; const btnH = 45; const bx = canvas.width / 2 - btnW / 2;
     if (tx >= bx && tx <= bx + btnW) {
-      if (ty >= 260 && ty <= 310) startGame(1);
-      if (ty >= 330 && ty <= 380) startGame(2);
-      if (ty >= 400 && ty <= 450) startGame(3);
+      if (ty >= 320 && ty <= 365) startGame(1);
+      if (ty >= 380 && ty <= 425) startGame(2);
+      if (ty >= 440 && ty <= 485) startGame(3);
     }
   }
 }
@@ -902,7 +930,7 @@ function updateAndDrawLightning() {
     ctx.restore();
   }
 
-  // 繪製雷電精靈圖[cite: 12]
+  // 繪製雷電精靈圖
   if (isReady(assets.lightning)) {
     const fW = assets.lightning.naturalWidth / 5;
     const fH = assets.lightning.naturalHeight;
@@ -943,7 +971,14 @@ function startGame(stageNum) {
   currentStage = stageNum;
   isStartMenu = false; isGameOver = false; isVictory = false;
   waveCount = 0; score = 0; spawnTimer = 0; bossWarningTimer = 0; boss = null;
-  player.hp = player.maxHp; player.shield = player.maxShield; player.lightningAmmo = 3;
+  
+  // 依玩家調整後的自訂數量初始化防護罩與閃電
+  player.maxShield = Math.max(5, initialShieldCount);
+  player.shield = initialShieldCount;
+  player.maxLightning = Math.max(5, initialLightningCount);
+  player.lightningAmmo = initialLightningCount;
+
+  player.hp = player.maxHp;
   player.powerLevel = 1; player.weaponType = 'bullet';
   player.x = canvas.width / 2 - player.width / 2; player.y = canvas.height - 180;
   enemyBullets = []; enemies = []; dropItems = []; explosions = []; smokeParticles = [];
@@ -1206,24 +1241,66 @@ function drawStartMenu() {
   updateAndDrawParallax(0.5);
   ctx.save();
   ctx.fillStyle = 'rgba(0, 0, 0, 0.65)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = '#fff'; ctx.font = 'bold 42px "Courier New"'; ctx.textAlign = 'center';
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 40px "Courier New"'; ctx.textAlign = 'center';
   ctx.shadowColor = '#0984e3'; ctx.shadowBlur = 15;
-  ctx.fillText('ACE STRIKER', canvas.width / 2, 160);
+  ctx.fillText('ACE STRIKER', canvas.width / 2, 130);
   ctx.shadowBlur = 0;
   
-  ctx.font = '16px "Courier New"'; ctx.fillStyle = '#ccc';
-  ctx.fillText('SELECT MISSION TO DEPLOY', canvas.width / 2, 210);
+  ctx.font = '15px "Courier New"'; ctx.fillStyle = '#ccc';
+  ctx.fillText('SELECT MISSION TO DEPLOY', canvas.width / 2, 170);
+
+  // --- 設定項目 (防護罩 & 閃電調整) ---
+  ctx.font = 'bold 15px "Courier New"';
+  // 防護罩數量調整
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#00cec9';
+  ctx.fillText('SHIELD:', 100, 246);
+  // 按鈕 [-]
+  ctx.fillStyle = '#444';
+  ctx.fillRect(250, 225, 35, 30);
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5;
+  ctx.strokeRect(250, 225, 35, 30);
+  ctx.fillStyle = '#fff'; ctx.textAlign = 'center';
+  ctx.fillText('-', 267, 245);
+  // 顯示數值
+  ctx.fillText(initialShieldCount.toString(), 315, 246);
+  // 按鈕 [+]
+  ctx.fillStyle = '#444';
+  ctx.fillRect(345, 225, 35, 30);
+  ctx.strokeRect(345, 225, 35, 30);
+  ctx.fillStyle = '#fff';
+  ctx.fillText('+', 362, 245);
+
+  // 閃電攻擊數量調整
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#f1c40f';
+  ctx.fillText('LIGHTNING:', 100, 286);
+  // 按鈕 [-]
+  ctx.fillStyle = '#444';
+  ctx.fillRect(250, 265, 35, 30);
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5;
+  ctx.strokeRect(250, 265, 35, 30);
+  ctx.fillStyle = '#fff'; ctx.textAlign = 'center';
+  ctx.fillText('-', 267, 285);
+  // 顯示數值
+  ctx.fillText(initialLightningCount.toString(), 315, 286);
+  // 按鈕 [+]
+  ctx.fillStyle = '#444';
+  ctx.fillRect(345, 265, 35, 30);
+  ctx.strokeRect(345, 265, 35, 30);
+  ctx.fillStyle = '#fff';
+  ctx.fillText('+', 362, 285);
 
   const drawBtn = (text, y, color) => {
-    const btnW = 220; const btnH = 50; const bx = canvas.width / 2 - btnW / 2;
+    const btnW = 220; const btnH = 45; const bx = canvas.width / 2 - btnW / 2;
     ctx.fillStyle = color; ctx.fillRect(bx, y, btnW, btnH);
     ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(bx, y, btnW, btnH);
-    ctx.fillStyle = '#fff'; ctx.font = 'bold 20px "Courier New"';
-    ctx.fillText(text, canvas.width / 2, y + 32);
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 18px "Courier New"';
+    ctx.fillText(text, canvas.width / 2, y + 29);
   };
-  drawBtn('STAGE 1: SPACE', 260, 'rgba(155, 89, 182, 0.8)');
-  drawBtn('STAGE 2: OCEAN', 330, 'rgba(52, 152, 219, 0.8)');
-  drawBtn('STAGE 3: DESERT', 400, 'rgba(230, 126, 34, 0.8)');
+  drawBtn('STAGE 1: SPACE', 320, 'rgba(155, 89, 182, 0.8)');
+  drawBtn('STAGE 2: OCEAN', 380, 'rgba(52, 152, 219, 0.8)');
+  drawBtn('STAGE 3: DESERT', 440, 'rgba(230, 126, 34, 0.8)');
   ctx.restore();
 }
 
